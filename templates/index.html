@@ -2,120 +2,95 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>神名のカケラ計算</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>神名のカケラ計算機</title>
   <style>
     body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #f5f5f5;
-      margin: 0;
+      font-family: sans-serif;
       padding: 20px;
-    }
-
-    .container {
+      margin: 0;
       max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin-left: auto;
+      margin-right: auto;
     }
-
     h1 {
       text-align: center;
-      color: #333;
+      font-size: 1.8em;
+      margin-bottom: 20px;
     }
-
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
     label {
-      display: block;
-      margin-bottom: 15px;
-      color: #555;
+      font-weight: bold;
     }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
+    input[type="number"], select {
+      padding: 8px;
+      font-size: 1em;
     }
-
     button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      background-color: #4285f4;
+      padding: 10px;
+      font-size: 1em;
+      background-color: #4CAF50;
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
-      margin-top: 20px;
-    }
-
-    button:hover {
-      background-color: #3367d6;
-    }
-
-    .result {
-      margin-top: 30px;
-      background-color: #e0f7fa;
-      padding: 15px;
       border-radius: 5px;
-      color: #00796b;
-      font-weight: bold;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f0f0f0;
+      border-left: 5px solid #4CAF50;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>神名のカケラ計算フォーム</h1>
-    <form method="post">
-      <label>現在の育成段階:
-        <select name="current_stage">
-          <option value="星1">星1</option>
-          <option value="星2">星2</option>
-          <option value="星3">星3</option>
-          <option value="星4">星4</option>
-          <option value="固有1">固有1</option>
-          <option value="固有2">固有2</option>
-        </select>
-      </label>
+  <h1>神名のカケラ計算機</h1>
+  <form method="post">
+    <label for="current_stage">現在の育成段階:</label>
+    <select name="current_stage" id="current_stage" required>
+      <option value="星1">星1</option>
+      <option value="星2">星2</option>
+      <option value="星3">星3</option>
+      <option value="星4">星4</option>
+      <option value="固有1">固有1</option>
+      <option value="固有2">固有2</option>
+    </select>
 
-      <label>現在の神名文字の所持数:
-        <input type="number" name="current_moji" min="0" required>
-      </label>
+    <label for="current_moji">現在の神名文字の所持数:</label>
+    <input type="number" id="current_moji" name="current_moji" min="0" required>
 
-      <label>現在のショップのカケラレート（未購入の場合は0）:
-        <select name="purchased_rate">
-          <option value="0">0（未購入）</option>
-          <option value="1">1（1カケラ/文字）</option>
-          <option value="2">2（2カケラ/文字）</option>
-          <option value="3">3（3カケラ/文字）</option>
-          <option value="4">4（4カケラ/文字）</option>
-          <option value="5">5（5カケラ/文字）</option>
-        </select>
-      </label>
+    <label for="purchased_rate">現在のショップのカケラレート（未購入の場合は0）:</label>
+    <select name="purchased_rate" id="purchased_rate" required>
+      <option value="0">0（未購入）</option>
+      <option value="1">1（1カケラ/文字）</option>
+      <option value="2">2（2カケラ/文字）</option>
+      <option value="3">3（3カケラ/文字）</option>
+      <option value="4">4（4カケラ/文字）</option>
+      <option value="5">5（5カケラ/文字）</option>
+    </select>
 
-      <label>このレートで既に購入した神名文字数:
-        <input type="number" name="purchased_moji" min="0" required>
-      </label>
+    <label for="purchased_moji">このレートで既に購入した神名文字数:</label>
+    <input type="number" id="purchased_moji" name="purchased_moji" min="0" required>
 
-      <label>目標の育成段階:
-        <select name="target_stage">
-          <option value="固有1">固有1</option>
-          <option value="固有2">固有2</option>
-          <option value="固有3">固有3</option>
-        </select>
-      </label>
+    <label for="target_stage">育成目標:</label>
+    <select name="target_stage" id="target_stage" required>
+      <option value="固有1">固有1</option>
+      <option value="固有2">固有2</option>
+      <option value="固有3">固有3</option>
+    </select>
 
-      <button type="submit">計算する</button>
-    </form>
+    <button type="submit">計算する</button>
+  </form>
 
-    {% if result %}
-      <div class="result">
-        {{ result }}
-      </div>
-    {% endif %}
-  </div>
+  {% if result %}
+    <div class="result">{{ result }}</div>
+  {% endif %}
 </body>
 </html>
