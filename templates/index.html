@@ -42,11 +42,29 @@
     button:hover {
       background-color: #45a049;
     }
-    .result {
+    .result-box {
       margin-top: 20px;
       padding: 15px;
-      background-color: #f0f0f0;
+      background-color: #ffffff;
       border-left: 5px solid #4CAF50;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .kakera-highlight {
+      display: inline-block;
+      font-weight: bold;
+      font-size: 1.5em;
+    }
+    .kakera-image {
+      width: 40px;
+      height: auto;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    .note {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: -8px;
+      margin-bottom: 8px;
     }
   </style>
 </head>
@@ -55,47 +73,71 @@
   <form method="post">
     <label for="current_stage">現在の育成段階:</label>
     <select name="current_stage" id="current_stage" required>
-      <option value="星1">星1</option>
-      <option value="星2">星2</option>
-      <option value="星3">星3</option>
-      <option value="星4">星4</option>
-      <option value="固有1">固有1</option>
-      <option value="固有2">固有2</option>
+      <option value="星1" {% if request.form.get('current_stage') == '星1' %}selected{% endif %}>星1</option>
+      <option value="星2" {% if request.form.get('current_stage') == '星2' %}selected{% endif %}>星2</option>
+      <option value="星3" {% if request.form.get('current_stage', '星3') == '星3' %}selected{% endif %}>星3</option>
+      <option value="星4" {% if request.form.get('current_stage') == '星4' %}selected{% endif %}>星4</option>
+      <option value="固有1" {% if request.form.get('current_stage') == '固有1' %}selected{% endif %}>固有1</option>
+      <option value="固有2" {% if request.form.get('current_stage') == '固有2' %}selected{% endif %}>固有2</option>
     </select>
 
     <label for="current_moji">現在の神名文字の所持数:</label>
-    <input type="number" id="current_moji" name="current_moji" min="0" required>
+    <input type="number" id="current_moji" name="current_moji" min="0" max="9999" value="{{ request.form.get('current_moji', '') }}" required>
 
-    <label for="purchased_rate">現在のショップのカケラレート（未購入の場合は0）:</label>
-    <select name="purchased_rate" id="purchased_rate" required>
-      <option value="0">0（未購入）</option>
-      <option value="1">1（1カケラ/文字）</option>
-      <option value="2">2（2カケラ/文字）</option>
-      <option value="3">3（3カケラ/文字）</option>
-      <option value="4">4（4カケラ/文字）</option>
-      <option value="5">5（5カケラ/文字）</option>
+    <label for="current_rate">現在のレート（例：1～5）:</label>
+    <select name="current_rate" id="current_rate" required onchange="toggleNote()">
+      {% for i in range(1, 6) %}
+        <option value="{{ i }}" {% if request.form.get('current_rate') == i|string %}selected{% endif %}>{{ i }}（{{ i }}カケラ/文字）</option>
+      {% endfor %}
     </select>
 
-    <label for="purchased_moji">このレートで既に購入した神名文字数:</label>
-    <input type="number" id="purchased_moji" name="purchased_moji" min="0" required>
+    <label for="remaining_at_current_rate">現在のレートであと何個交換できるか:</label>
+    <select name="remaining_at_current_rate" id="remaining_at_current_rate" required>
+      {% for i in range(0, 21) %}
+        <option value="{{ i }}" {% if request.form.get('remaining_at_current_rate') == i|string %}selected{% endif %}>{{ i }}個</option>
+      {% endfor %}
+    </select>
+
+    <div class="note" id="rate5-note" style="display: none;">
+      ※ レート5では個数は何でもよいので選択してください。
+    </div>
 
     <label for="target_stage">育成目標:</label>
     <select name="target_stage" id="target_stage" required>
-      <option value="固有1">固有1</option>
-      <option value="固有2">固有2</option>
-      <option value="固有3">固有3</option>
+      <option value="固有1" {% if request.form.get('target_stage') == '固有1' %}selected{% endif %}>固有1</option>
+      <option value="固有2" {% if request.form.get('target_stage') == '固有2' %}selected{% endif %}>固有2</option>
+      <option value="固有3" {% if request.form.get('target_stage') == '固有3' %}selected{% endif %}>固有3</option>
     </select>
 
     <button type="submit">計算する</button>
   </form>
 
   {% if result %}
-    <div class="result">{{ result }}</div>
+    <div class="result-box">
+      {{ result|safe }}
+    </div>
   {% endif %}
 
   <footer style="text-align:center; margin-top:40px; font-size:0.9em; color: #666;">
     © 2025 長老ブルアカ攻略
   </footer>
-  
+
+  <script>
+    function toggleNote() {
+      const rate = document.getElementById('current_rate').value;
+      const note = document.getElementById('rate5-note');
+      if (rate === "5") {
+        note.style.display = "block";
+      } else {
+        note.style.display = "none";
+      }
+    }
+
+    // 初期状態でもチェック（リロード直後用）
+    window.onload = toggleNote;
+  </script>
 </body>
 </html>
+
+
+
