@@ -5,13 +5,24 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
+    form_data = {}
+
     if request.method == 'POST':
         current_stage = request.form['current_stage']
         current_moji = int(request.form['current_moji'])
-        purchased_moji = int(request.form['purchased_moji'])
-        purchased_rate = int(request.form['purchased_rate'])
+        current_rate = int(request.form['current_rate'])
+        remaining_at_current_rate = int(request.form['remaining_at_current_rate'])
         target_stage = request.form['target_stage']
 
+        form_data = {
+            "current_stage": current_stage,
+            "current_moji": current_moji,
+            "current_rate": current_rate,
+            "remaining_at_current_rate": remaining_at_current_rate,
+            "target_stage": target_stage
+        }
+
+        # 必要な神名文字数
         required_moji_dict = {
             "星1": {"固有1": 30 + 80 + 220, "固有2": 30 + 80 + 340, "固有3": 30 + 80 + 520},
             "星2": {"固有1": 80 + 220, "固有2": 80 + 340, "固有3": 80 + 520},
@@ -25,29 +36,35 @@ def index():
             result = "無効な育成目標です。"
         else:
             required_moji = required_moji_dict[current_stage][target_stage]
-            remaining_moji = required_moji - current_moji
+            moji_left = required_moji - current_moji
 
-            if remaining_moji <= 0:
+            if moji_left <= 0:
                 result = f"すでに{target_stage}に必要な神名文字を所持しています。"
             else:
-                rate_thresholds = [20, 40, 60, 80, 100]
-                rates = [1, 2, 3, 4, 5]
                 total_kakera_needed = 0
-                moji_purchased = purchased_moji
 
-                for i in range(purchased_rate, len(rate_thresholds)):
-                    if remaining_moji > 0:
-                        purchasable = min(rate_thresholds[i] - moji_purchased, remaining_moji)
-                        total_kakera_needed += purchasable * rates[i]
-                        moji_purchased += purchasable
-                        remaining_moji -= purchasable
+                # 現在のレートで処理
+                if moji_left > 0:
+                    take = min(moji_left, remaining_at_current_rate)
+                    total_kakera_needed += take * current_rate
+                    moji_left -= take
+                    next_rate = current_rate + 1
+                else:
+                    next_rate = current_rate
 
-                if remaining_moji > 0:
-                    total_kakera_needed += remaining_moji * 5
+                # 残りを次のレートで処理
+                while moji_left > 0 and next_rate <= 5:
+                    take = min(moji_left, 20)
+                    total_kakera_needed += take * next_rate
+                    moji_left -= take
+                    next_rate += 1
 
-                result = f"{target_stage}までに必要な神名のカケラ: {total_kakera_needed}カケラ"
+                if moji_left > 0:
+                    total_kakera_needed += moji_left * 5
 
-    return render_template('index.html', result=result)
+                result = f"{target_stage}までに必要な神名のカケラ:<br><span class='kakera-highlight'>{total_kakera_needed}カケラ</span>"
+
+    return render_template('index.html', result=result, form_data=form_data)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000, debug=True)
