@@ -1,154 +1,71 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
   <title>神名のカケラ計算機</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      margin: 0;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.8em;
-      margin-bottom: 20px;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    label {
-      font-weight: bold;
-    }
-    input[type="number"], select {
-      padding: 8px;
-      font-size: 1em;
-    }
-    button {
-      padding: 10px;
-      font-size: 1em;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    .result-box {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #ffffff;
-      border-left: 5px solid #4CAF50;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .kakera-highlight {
-      display: inline-block;
-      font-weight: bold;
-      font-size: 1.5em;
-    }
-    .kakera-image {
-      width: 40px;
-      height: auto;
-      vertical-align: middle;
-      margin-left: 10px;
-    }
-    .note {
-      font-size: 0.9em;
-      color: #666;
-      margin-top: -8px;
-      margin-bottom: 8px;
-    }
+    body {font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background:#f5f5f5;}
+    h1 {text-align:center;}
+    form {max-width:480px; margin:1rem auto; background:#fff; padding:1rem 1.5rem; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.1);}
+    label {display:block; margin-top:0.8rem;}
+    select, input[type="number"] {width:100%; padding:0.4rem; border:1px solid #ccc; border-radius:4px;}
+    button {margin-top:1.2rem; width:100%; padding:0.6rem; font-size:1rem; border:none; border-radius:4px; background:#3b82f6; color:#fff; cursor:pointer;}
+    button:hover {opacity:0.9;}
+    .result-box {max-width:480px; margin:1rem auto; text-align:center; font-size:1.2rem;}
+    .kakera-highlight {font-size:1.8rem; font-weight:bold; color:#dc2626;}
+    footer {text-align:center; margin-top:2rem; font-size:0.8rem; color:#666;}
   </style>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1SHPHJKZTX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-1SHPHJKZTX');
-</script>
-
 </head>
 <body>
   <h1>神名のカケラ計算機</h1>
   <form method="post">
-    <label for="current_stage">現在の育成段階:</label>
+    <!-- 現在の育成段階 -->
+    <label for="current_stage">現在の段階</label>
     <select name="current_stage" id="current_stage" required>
-      <option value="星1" {% if request.form.get('current_stage') == '星1' %}selected{% endif %}>星1</option>
-      <option value="星2" {% if request.form.get('current_stage') == '星2' %}selected{% endif %}>星2</option>
-      <option value="星3" {% if request.form.get('current_stage', '星3') == '星3' %}selected{% endif %}>星3</option>
-      <option value="星4" {% if request.form.get('current_stage') == '星4' %}selected{% endif %}>星4</option>
-      <option value="固有1" {% if request.form.get('current_stage') == '固有1' %}selected{% endif %}>固有1</option>
-      <option value="固有2" {% if request.form.get('current_stage') == '固有2' %}selected{% endif %}>固有2</option>
-    </select>
-
-    <label for="current_moji">現在の神名文字の所持数:</label>
-    <input type="number" id="current_moji" name="current_moji" min="0" max="9999" value="{{ request.form.get('current_moji', '') }}" required>
-
-    <label for="current_rate">現在のレート（例：1～5）:</label>
-    <select name="current_rate" id="current_rate" required onchange="toggleNote()">
-      {% for i in range(1, 6) %}
-        <option value="{{ i }}" {% if request.form.get('current_rate') == i|string %}selected{% endif %}>{{ i }}（{{ i }}カケラ/文字）</option>
+      {% for s in ["星1","星2","星3","星4","固有1","固有2","固有3"] %}
+      <option value="{{s}}" {% if form_data.current_stage==s %}selected{% endif %}>{{s}}</option>
       {% endfor %}
     </select>
 
-    <label for="remaining_at_current_rate">現在のレートであと何個交換できるか:</label>
+    <!-- 所持神名文字 -->
+    <label for="current_moji">現在の神名文字所持数</label>
+    <input type="number" name="current_moji" id="current_moji" min="0" value="{{ form_data.current_moji or 0 }}" required>
+
+    <!-- 現在のレート -->
+    <label for="current_rate">現在のレート</label>
+    <select name="current_rate" id="current_rate" required>
+      {% for r in [1,2,3,4,5] %}
+      <option value="{{r}}" {% if form_data.current_rate==r %}selected{% endif %}>{{r}}（{{r}}カケラ/文字）</option>
+      {% endfor %}
+    </select>
+
+    <!-- そのレートであと何個交換できるか -->
+    <label for="remaining_at_current_rate">あと何個そのレートで交換できるか</label>
     <select name="remaining_at_current_rate" id="remaining_at_current_rate" required>
-      {% for i in range(0, 21) %}
-        <option value="{{ i }}" {% if request.form.get('remaining_at_current_rate') == i|string %}selected{% endif %}>{{ i }}個</option>
+      {% for n in range(0,21) %}
+      <option value="{{n}}" {% if form_data.remaining_at_current_rate==n %}selected{% endif %}>{{n}}個</option>
       {% endfor %}
     </select>
 
-    <div class="note" id="rate5-note" style="display: none;">
-      ※ レート5では個数は何でもよいので選択してください。
-    </div>
-
-    <label for="target_stage">育成目標:</label>
+    <!-- 目標段階 -->
+    <label for="target_stage">目標段階</label>
     <select name="target_stage" id="target_stage" required>
-      <option value="固有1" {% if request.form.get('target_stage') == '固有1' %}selected{% endif %}>固有1</option>
-      <option value="固有2" {% if request.form.get('target_stage') == '固有2' %}selected{% endif %}>固有2</option>
-      <option value="固有3" {% if request.form.get('target_stage') == '固有3' %}selected{% endif %}>固有3</option>
+      {% for t in ["固有1","固有2","固有3","固有4"] %}
+      <option value="{{t}}" {% if form_data.target_stage==t %}selected{% endif %}>{{t}}</option>
+      {% endfor %}
     </select>
 
     <button type="submit">計算する</button>
   </form>
 
   {% if result %}
-    <div class="result-box">
-      {{ result|safe }}
-    </div>
+  <div class="result-box">
+    {{ result|safe }}
+  </div>
   {% endif %}
 
-  <footer style="text-align:center; margin-top:40px; font-size:0.9em; color: #666;">
-    © 2025 長老ブルアカ攻略
-  </footer>
-
-  <script>
-    function toggleNote() {
-      const rate = document.getElementById('current_rate').value;
-      const note = document.getElementById('rate5-note');
-      if (rate === "5") {
-        note.style.display = "block";
-      } else {
-        note.style.display = "none";
-      }
-    }
-
-    // 初期状態でもチェック（リロード直後用）
-    window.onload = toggleNote;
-  </script>
+  <footer>© 2025 長老ブルアカ攻略</footer>
 </body>
 </html>
-
-
-
